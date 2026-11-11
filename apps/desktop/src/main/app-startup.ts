@@ -428,11 +428,9 @@ export async function startApp(
   // on its own startup. The `setWindow` / `startAllTimers` calls on this
   // side are gone along with the classes they used to drive.
   let startGoogleOAuthFn:
-    | typeof import('./google-accounts/google-auth').startGoogleOAuth
-    | undefined;
+    typeof import('./google-accounts/google-auth').startGoogleOAuth | undefined;
   let cancelGoogleOAuthFn:
-    | typeof import('./google-accounts/google-auth').cancelGoogleOAuth
-    | undefined;
+    typeof import('./google-accounts/google-auth').cancelGoogleOAuth | undefined;
   try {
     const { startGoogleOAuth, cancelGoogleOAuth } = await import('./google-accounts/index');
     startGoogleOAuthFn = startGoogleOAuth;

@@ -92,8 +92,7 @@ export function getActiveProviderId(): ProviderId | null {
 export function getConnectedProvider(providerId: ProviderId): ConnectedProvider | null {
   const db = getDatabase();
   const row = db.prepare('SELECT * FROM providers WHERE provider_id = ?').get(providerId) as
-    | ProviderRow
-    | undefined;
+    ProviderRow | undefined;
 
   return row ? rowToProvider(row) : null;
 }
@@ -214,8 +213,7 @@ export function getConnectedProviderIds(): ProviderId[] {
 export function getAccomplishAiCredits(): CreditUsage | null {
   const db = getDatabase();
   const row = db.prepare('SELECT credits_json FROM accomplish_ai_credits WHERE id = 1').get() as
-    | { credits_json: string }
-    | undefined;
+    { credits_json: string } | undefined;
   if (!row) return null;
   try {
     return JSON.parse(row.credits_json) as CreditUsage;

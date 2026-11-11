@@ -27,11 +27,12 @@ A Unix socket server (`net.createServer`) that listens on `daemon.sock` and disp
 - The only external reference is `settings-handlers.ts:80` which does a dynamic `import('../../daemon/server')` solely to call `getSocketPath()` for a `daemon:get-socket-path` IPC handler.
 
 **Files affected (could be removed):**
-| File | Lines |
-|---|---|
-| `apps/desktop/src/main/daemon/server.ts` | 174 |
-| `apps/desktop/src/main/daemon/rpc-dispatcher.ts` | 160 |
-| **Total** | **~334 lines** |
+
+| File                                             | Lines          |
+| ------------------------------------------------ | -------------- |
+| `apps/desktop/src/main/daemon/server.ts`         | 174            |
+| `apps/desktop/src/main/daemon/rpc-dispatcher.ts` | 160            |
+| **Total**                                        | **~334 lines** |
 
 ---
 
@@ -51,12 +52,13 @@ A `fork()`-ed Node.js child process that handles storage-only RPC methods. Compi
 - The in-process fallback registers the **exact same handlers** plus task execution, making the child process strictly less capable.
 
 **Files affected:**
-| File | Lines |
-|---|---|
-| `apps/desktop/src/main/daemon/entry.ts` | 158 |
-| `apps/desktop/src/main/daemon/daemon-spawn.ts` | 117 |
-| Vite plugin `buildDaemonEntry()` in `vite.config.ts` | ~40 |
-| **Total** | **~315 lines** |
+
+| File                                                 | Lines          |
+| ---------------------------------------------------- | -------------- |
+| `apps/desktop/src/main/daemon/entry.ts`              | 158            |
+| `apps/desktop/src/main/daemon/daemon-spawn.ts`       | 117            |
+| Vite plugin `buildDaemonEntry()` in `vite.config.ts` | ~40            |
+| **Total**                                            | **~315 lines** |
 
 ---
 

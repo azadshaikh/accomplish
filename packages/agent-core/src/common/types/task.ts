@@ -155,12 +155,7 @@ export type TaskResult =
     };
 
 export type StartupStage =
-  | 'starting'
-  | 'browser'
-  | 'environment'
-  | 'loading'
-  | 'connecting'
-  | 'waiting';
+  'starting' | 'browser' | 'environment' | 'loading' | 'connecting' | 'waiting';
 
 /**
  * Array of all valid startup stage values.

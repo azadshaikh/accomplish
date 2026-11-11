@@ -84,10 +84,7 @@ export interface McpConnector {
 
 /** OAuth strategy discriminant for built-in connectors (ADR-F002) */
 export type ConnectorDesktopOAuthKind =
-  | 'mcp-dcr'
-  | 'mcp-fixed-client'
-  | 'desktop-google'
-  | 'desktop-github';
+  'mcp-dcr' | 'mcp-fixed-client' | 'desktop-google' | 'desktop-github';
 
 export interface ConnectorCallbackBinding {
   readonly host: string;

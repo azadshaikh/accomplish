@@ -26,14 +26,7 @@ export type ProviderId =
   | 'accomplish-ai';
 
 export type ProviderCategory =
-  | 'classic'
-  | 'aws'
-  | 'gcp'
-  | 'azure'
-  | 'local'
-  | 'proxy'
-  | 'hybrid'
-  | 'accomplish';
+  'classic' | 'aws' | 'gcp' | 'azure' | 'local' | 'proxy' | 'hybrid' | 'accomplish';
 
 export interface ProviderMeta {
   id: ProviderId;

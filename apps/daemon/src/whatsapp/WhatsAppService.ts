@@ -116,8 +116,7 @@ export class WhatsAppService extends EventEmitter implements ChannelAdapter {
       // makeInMemoryStore is not in the Baileys type declarations but is exported at runtime
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const makeInMemoryStore = (baileys as any).makeInMemoryStore as
-        | ((opts: Record<string, unknown>) => unknown)
-        | undefined;
+        ((opts: Record<string, unknown>) => unknown) | undefined;
       const pino = (await import('pino')).default;
 
       let version: [number, number, number] | undefined;

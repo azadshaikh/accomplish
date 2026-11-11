@@ -6,12 +6,7 @@ export type MessagingPlatform = 'whatsapp' | 'slack' | 'telegram' | 'teams';
  * Mirrors WhatsAppService statuses from PR #595 (aryan877).
  */
 export type MessagingConnectionStatus =
-  | 'disconnected'
-  | 'connecting'
-  | 'qr_ready'
-  | 'connected'
-  | 'error'
-  | 'logged_out';
+  'disconnected' | 'connecting' | 'qr_ready' | 'connected' | 'error' | 'logged_out';
 
 /** Alias kept for backwards-compat with type-only imports */
 export type MessagingProviderId = MessagingPlatform;

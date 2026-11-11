@@ -180,8 +180,7 @@ export function getScheduledTasksByWorkspace(workspaceId: string): ScheduledTask
 export function getScheduledTaskById(id: string): ScheduledTask | null {
   const db = getDatabase();
   const row = db.prepare('SELECT * FROM scheduled_tasks WHERE id = ?').get(id) as
-    | ScheduledTaskRow
-    | undefined;
+    ScheduledTaskRow | undefined;
   return row ? rowToScheduledTask(row) : null;
 }
 
@@ -231,8 +230,7 @@ export function setScheduledTaskEnabled(id: string, enabled: boolean): void {
   if (enabled) {
     // Recompute next_run_at when enabling — reject if no match in scan window
     const row = db.prepare('SELECT cron FROM scheduled_tasks WHERE id = ?').get(id) as
-      | { cron: string }
-      | undefined;
+      { cron: string } | undefined;
     const nextRunAt = row ? computeNextRunAt(row.cron, new Date()) : null;
     if (!nextRunAt) {
       throw new Error(

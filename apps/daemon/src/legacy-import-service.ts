@@ -64,8 +64,7 @@ function readJsonOrEmpty(path: string): Record<string, unknown> {
 function wasAttempted(db: Database): boolean {
   try {
     const row = db.prepare('SELECT value FROM schema_meta WHERE key = ?').get(LEGACY_IMPORT_KEY) as
-      | { value: string }
-      | undefined;
+      { value: string } | undefined;
     return row?.value === 'true';
   } catch {
     return false;
@@ -81,14 +80,12 @@ function hasExistingUserData(db: Database): boolean {
       return true;
     }
     const providerCount = db.prepare('SELECT COUNT(*) as count FROM providers').get() as
-      | { count: number }
-      | undefined;
+      { count: number } | undefined;
     if (providerCount && providerCount.count > 0) {
       return true;
     }
     const taskCount = db.prepare('SELECT COUNT(*) as count FROM tasks').get() as
-      | { count: number }
-      | undefined;
+      { count: number } | undefined;
     if (taskCount && taskCount.count > 0) {
       return true;
     }
@@ -152,9 +149,7 @@ function importProviderSettings(db: Database, providerSettingsPath: string): voi
     ).run((legacy.activeProviderId as string | null) ?? null, legacy.debugMode ? 1 : 0);
 
     const connectedProviders = legacy.connectedProviders as
-      | Record<string, Record<string, unknown>>
-      | null
-      | undefined;
+      Record<string, Record<string, unknown>> | null | undefined;
 
     if (connectedProviders) {
       const insertProvider = db.prepare(
