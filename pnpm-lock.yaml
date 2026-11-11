@@ -228,31 +228,13 @@ importers:
       opencode-darwin-x64:
         specifier: 1.19.5
         version: 1.19.5
-      opencode-darwin-x64-baseline:
-        specifier: 1.19.5
-        version: 1.19.5
       opencode-linux-arm64:
-        specifier: 1.19.5
-        version: 1.19.5
-      opencode-linux-arm64-musl:
         specifier: 1.19.5
         version: 1.19.5
       opencode-linux-x64:
         specifier: 1.19.5
         version: 1.19.5
-      opencode-linux-x64-baseline:
-        specifier: 1.19.5
-        version: 1.19.5
-      opencode-linux-x64-baseline-musl:
-        specifier: 1.19.5
-        version: 1.19.5
-      opencode-linux-x64-musl:
-        specifier: 1.19.5
-        version: 1.19.5
       opencode-windows-x64:
-        specifier: 1.19.5
-        version: 1.19.5
-      opencode-windows-x64-baseline:
         specifier: 1.19.5
         version: 1.19.5
 
@@ -8194,7 +8176,7 @@ snapshots:
       obug: 3.0.0
       std-env: 4.3.0
       tinyrainbow: 3.2.0
-      vitest: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.1.0)(happy-dom@20.6.1)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.3.8(@types/node@24.19.2)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      vitest: 5.1.0(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(@vitest/coverage-v8@5.1.0)(happy-dom@20.6.1)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
   '@vitest/istanbul-lib-coverage@2.1.0': {}
 

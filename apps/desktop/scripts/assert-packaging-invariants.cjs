@@ -21,6 +21,10 @@
  *      bundled Node (resolved from `<app-root>/nodejs/<platform>-<arch>/`).
  *      Invokes `<bundled-node> -e require(...)` and fails if the child
  *      process exits non-zero.
+ *   4. Exactly one OpenCode platform binary ships. The app intentionally
+ *      bundles only the AVX2/ARM64 build; a second variant (baseline, musl)
+ *      or the `opencode-ai` postinstall copy adds ~200 MB per binary to the
+ *      installer.
  *
  * CLI:
  *   node apps/desktop/scripts/assert-packaging-invariants.cjs \
@@ -203,6 +207,35 @@ function main() {
       `Bundled Node could not load daemon's better-sqlite3 — ABI mismatch. ` +
         `${err.stderr ? err.stderr.toString() : err.message}`,
     );
+  }
+
+  // ─── Invariant 4: exactly one OpenCode platform binary ships ───
+  const unpackedModules = path.join(asarUnpack, 'node_modules');
+  if (fs.existsSync(unpackedModules)) {
+    const opencodePlatformDirs = fs
+      .readdirSync(unpackedModules, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .filter((name) => /^opencode-(windows|linux|darwin)-/.test(name));
+
+    if (opencodePlatformDirs.length !== 1) {
+      die(
+        `Expected exactly one opencode platform package under ${unpackedModules}, found ` +
+          `${opencodePlatformDirs.length}: ${opencodePlatformDirs.join(', ') || '(none)'}. ` +
+          `Each extra variant adds a full ~200 MB binary to the installer.`,
+      );
+    }
+    log(`OK: ships exactly one opencode platform package (${opencodePlatformDirs[0]})`);
+
+    const launcherBin = path.join(unpackedModules, 'opencode-ai', 'bin');
+    if (fs.existsSync(launcherBin)) {
+      die(
+        `opencode-ai/bin is present at ${launcherBin}. The launcher's postinstall copy of ` +
+          `the binary duplicates the platform package and must not be packaged.`,
+      );
+    }
+  } else {
+    log(`Note: no unpacked node_modules at ${unpackedModules}; skipping opencode binary check`);
   }
 
   log('All packaging invariants hold');

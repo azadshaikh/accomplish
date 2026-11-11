@@ -79,9 +79,9 @@ function die(msg, code = 1) {
  * `optionalDependencies` list, keyed on BOTH OS and arch. We match by full
  * `opencode-<platform>-<arch>[-variant]` so a hypothetical artifact that
  * somehow contains both arm64 and x64 packages can't be smoked against the
- * wrong binary. Among multiple matching variants (baseline, musl, etc.)
- * we prefer the shortest name (so plain `opencode-linux-x64` wins over
- * `opencode-linux-x64-baseline`).
+ * wrong binary. Shipping more than one variant is a packaging regression
+ * (the app intentionally bundles exactly one binary), so any extra match is
+ * reported and the shortest name wins for the actual smoke run.
  */
 function resolveBinary(artifactDir) {
   const candidates = [

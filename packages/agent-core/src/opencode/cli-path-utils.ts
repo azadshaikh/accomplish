@@ -3,92 +3,49 @@
  *
  * Platform detection and path helpers for locating the OpenCode CLI binary.
  * Extracted from cli-resolver.ts to keep file sizes under 200 lines.
+ *
+ * Exactly one platform binary ships per OS/arch: the AVX2 x64 builds (or the
+ * ARM64 build). Non-AVX2 "baseline", musl and arm64-musl variants are not
+ * bundled, so the installer carries a single ~200 MB binary instead of four.
  */
 
 import path from 'path';
 import fs from 'fs';
-import { spawnSync } from 'child_process';
 import { createConsoleLogger } from '../utils/logging.js';
 import type { ResolvedCliPaths } from '../types.js';
 
 const log = createConsoleLogger({ prefix: 'CLIResolver' });
 
 const WINDOWS_OPENCODE_X64_PACKAGE = 'opencode-windows-x64';
-const WINDOWS_OPENCODE_X64_BASELINE_PACKAGE = 'opencode-windows-x64-baseline';
 const LINUX_OPENCODE_X64_PACKAGE = 'opencode-linux-x64';
-const LINUX_OPENCODE_X64_BASELINE_PACKAGE = 'opencode-linux-x64-baseline';
-const LINUX_OPENCODE_X64_MUSL_PACKAGE = 'opencode-linux-x64-musl';
-const LINUX_OPENCODE_X64_BASELINE_MUSL_PACKAGE = 'opencode-linux-x64-baseline-musl';
 const LINUX_OPENCODE_ARM64_PACKAGE = 'opencode-linux-arm64';
-const LINUX_OPENCODE_ARM64_MUSL_PACKAGE = 'opencode-linux-arm64-musl';
+const DARWIN_OPENCODE_ARM64_PACKAGE = 'opencode-darwin-arm64';
+const DARWIN_OPENCODE_X64_PACKAGE = 'opencode-darwin-x64';
 export const OPENCODE_LAUNCHER_PACKAGE = 'opencode-ai';
 
-let cachedWindowsPackageNames: string[] | null = null;
-
-export function detectWindowsAvx2Support(): boolean {
-  const checkCommand =
-    '(Add-Type -MemberDefinition "[DllImport(""kernel32.dll"")] public static extern bool IsProcessorFeaturePresent(int ProcessorFeature);" -Name Kernel32 -Namespace Win32 -PassThru)::IsProcessorFeaturePresent(40)';
-
-  for (const shell of ['powershell.exe', 'pwsh.exe', 'pwsh', 'powershell']) {
-    try {
-      const result = spawnSync(shell, ['-NoProfile', '-NonInteractive', '-Command', checkCommand], {
-        encoding: 'utf-8',
-        timeout: 3000,
-        stdio: ['ignore', 'pipe', 'ignore'],
-        windowsHide: true,
-      });
-      if (result.status !== 0) {
-        continue;
-      }
-
-      const output = (result.stdout ?? '').trim().toLowerCase();
-      if (output === 'true' || output === '1') {
-        return true;
-      }
-      if (output === 'false' || output === '0') {
-        return false;
-      }
-    } catch {
-      continue;
-    }
-  }
-
-  return false;
-}
-
-export function getWindowsPackageNames(): string[] {
-  if (cachedWindowsPackageNames) {
-    return cachedWindowsPackageNames;
-  }
-
-  const preferAvx2Binary = detectWindowsAvx2Support();
-  cachedWindowsPackageNames = preferAvx2Binary
-    ? [WINDOWS_OPENCODE_X64_PACKAGE, WINDOWS_OPENCODE_X64_BASELINE_PACKAGE]
-    : [WINDOWS_OPENCODE_X64_BASELINE_PACKAGE, WINDOWS_OPENCODE_X64_PACKAGE];
-
-  return cachedWindowsPackageNames;
-}
-
-export function getLinuxPackageNames(): string[] {
-  if (process.arch === 'arm64') {
-    return [LINUX_OPENCODE_ARM64_PACKAGE, LINUX_OPENCODE_ARM64_MUSL_PACKAGE];
-  }
-  return [
-    LINUX_OPENCODE_X64_PACKAGE,
-    LINUX_OPENCODE_X64_BASELINE_PACKAGE,
-    LINUX_OPENCODE_X64_MUSL_PACKAGE,
-    LINUX_OPENCODE_X64_BASELINE_MUSL_PACKAGE,
-  ];
-}
-
+/**
+ * The packages that must ship for the current platform. There is no fallback
+ * list on purpose: a second binary would double the installer size, and the
+ * non-AVX2 builds only serve x64 CPUs older than Haswell (2013).
+ */
 export function getOpenCodePlatformInfo(): { packageNames: string[]; binaryName: string } {
   if (process.platform === 'win32') {
-    return { packageNames: getWindowsPackageNames(), binaryName: 'opencode.exe' };
+    return { packageNames: [WINDOWS_OPENCODE_X64_PACKAGE], binaryName: 'opencode.exe' };
   }
   if (process.platform === 'linux') {
-    return { packageNames: getLinuxPackageNames(), binaryName: 'opencode' };
+    return {
+      packageNames: [
+        process.arch === 'arm64' ? LINUX_OPENCODE_ARM64_PACKAGE : LINUX_OPENCODE_X64_PACKAGE,
+      ],
+      binaryName: 'opencode',
+    };
   }
-  return { packageNames: ['opencode-ai'], binaryName: 'opencode' };
+  return {
+    packageNames: [
+      process.arch === 'arm64' ? DARWIN_OPENCODE_ARM64_PACKAGE : DARWIN_OPENCODE_X64_PACKAGE,
+    ],
+    binaryName: 'opencode',
+  };
 }
 
 export function getCandidateAppRoots(appPath?: string): string[] {

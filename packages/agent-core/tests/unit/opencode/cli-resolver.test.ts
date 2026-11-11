@@ -63,7 +63,7 @@ describe('CLI Resolver', () => {
       } else if (process.platform === 'linux') {
         packageName = process.arch === 'arm64' ? 'opencode-linux-arm64' : 'opencode-linux-x64';
       } else {
-        packageName = 'opencode-ai';
+        packageName = process.arch === 'arm64' ? 'opencode-darwin-arm64' : 'opencode-darwin-x64';
       }
       const cliDir = path.join(
         testDir,
@@ -136,7 +136,7 @@ describe('CLI Resolver', () => {
     itIfWindows('resolves development CLI via opencode-ai launcher realpath in pnpm layout', () => {
       const appRoot = path.join(testDir, 'app');
       const launcherPath = path.join(appRoot, 'node_modules', 'opencode-ai');
-      const launcherStoreRoot = path.join(testDir, '.pnpm', 'opencode-ai@1.14.18', 'node_modules');
+      const launcherStoreRoot = path.join(testDir, '.pnpm', 'opencode-ai@1.19.5', 'node_modules');
       const realLauncherPath = path.join(launcherStoreRoot, 'opencode-ai');
       const cliPath = path.join(launcherStoreRoot, 'opencode-windows-x64', 'bin', 'opencode.exe');
 
@@ -208,7 +208,7 @@ describe('CLI Resolver', () => {
       } else if (process.platform === 'linux') {
         packageName = process.arch === 'arm64' ? 'opencode-linux-arm64' : 'opencode-linux-x64';
       } else {
-        packageName = 'opencode-ai';
+        packageName = process.arch === 'arm64' ? 'opencode-darwin-arm64' : 'opencode-darwin-x64';
       }
       const packageDir = path.join(testDir, 'node_modules', packageName);
       const binDir = path.join(testDir, 'node_modules', '.bin');

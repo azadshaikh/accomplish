@@ -137,7 +137,7 @@ let cachedOpencodeBinPath: string | null = null;
  * `require.resolve('opencode-ai/package.json')` directly, but in the
  * tsup-bundled CJS daemon the search root is `apps/daemon/dist/`, which has
  * no `node_modules/opencode-ai/`. The bundled-app form is
- * `${resourcesPath}/app.asar.unpacked/node_modules/opencode-ai/bin/opencode`;
+ * `${resourcesPath}/app.asar.unpacked/node_modules/opencode-<platform>-<arch>/bin/opencode[.exe]`;
  * the dev form is `${appPath}/node_modules/.bin/opencode`. Both are handled
  * by `resolveCliPath` so the daemon doesn't need to re-implement the
  * lookup. Cached after the first successful resolution.
