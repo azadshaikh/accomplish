@@ -55,10 +55,8 @@ const DAEMON_DIST = path.join(REPO_ROOT, 'apps', 'daemon', 'dist');
 
 const DEPS = ['ws@8', 'better-sqlite3@12'];
 
-/** Subset of DEPS that install a native binary — must be purged before
- *  re-staging so `prebuild-install` actually re-runs and picks the
- *  correct target's `.node` binary. `ws` is pure JS; leaving it in
- *  place between runs is safe and faster. */
+/** Subset of DEPS that install a native binary — the arch/ABI checks in
+ *  verifyNativeBinariesForTarget() only apply to these. `ws` is pure JS. */
 const NATIVE_DEPS = ['better-sqlite3'];
 
 const SUPPORTED_TARGET_PLATFORMS = new Set([
@@ -271,17 +269,24 @@ function readNativeArch(binaryPath) {
  * stale lockfile can pin the resolved-URL to a previous-arch prebuild
  * asset, and we want prebuild-install to re-resolve against
  * `npm_config_target_arch`.
+ *
+ * The whole `node_modules/` goes, not just `NATIVE_DEPS`: npm's reify
+ * treats an existing top-level directory as "already installed" and
+ * skips re-extracting it. A staging run that was interrupted (Ctrl-C,
+ * a full disk, a killed CI step) therefore leaves package directories
+ * with no files in them, and every later run reuses those husks. The
+ * shipped daemon then dies on `require('bindings')` at first DB open,
+ * while `require('better-sqlite3')` still succeeds locally because the
+ * missing package resolves from the repo root. Deleting the tree makes
+ * the install hermetic at the cost of a few seconds.
  */
 function purgePreviousStaging() {
   const nodeModules = path.join(DAEMON_DIST, 'node_modules');
-  for (const name of NATIVE_DEPS) {
-    const pkgDir = path.join(nodeModules, name);
-    if (fs.existsSync(pkgDir)) {
-      log(`Removing previous ${name} install at ${pkgDir}`);
-      fs.rmSync(pkgDir, { recursive: true, force: true });
-    }
+  if (fs.existsSync(nodeModules)) {
+    log(`Removing previous staging at ${nodeModules}`);
+    fs.rmSync(nodeModules, { recursive: true, force: true });
   }
-  for (const lockfile of ['package-lock.json', 'pnpm-lock.yaml']) {
+  for (const lockfile of ['package-lock.json', 'pnpm-lock.yaml', '.package-lock.json']) {
     const lockPath = path.join(DAEMON_DIST, lockfile);
     if (fs.existsSync(lockPath)) {
       log(`Removing stale ${lockfile}`);
