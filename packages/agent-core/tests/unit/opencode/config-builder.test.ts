@@ -124,4 +124,61 @@ describe('buildProviderConfigs', () => {
       expect(googleConfig).toBeUndefined();
     });
   });
+
+  describe('Custom Endpoint provider', () => {
+    const customProvider = {
+      providerId: 'custom',
+      connectionStatus: 'connected',
+      selectedModelId: 'custom/oc/test-model',
+      credentials: {
+        type: 'custom',
+        baseUrl: 'https://router.example.test/v1',
+        modelName: 'oc/test-model',
+        hasApiKey: true,
+      },
+    };
+
+    it('warns when the provider says it has a key but storage has none', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = await buildProviderConfigs({
+        getApiKey: () => undefined,
+        providerSettings: { connectedProviders: { custom: customProvider } } as never,
+      });
+
+      const customConfig = result.providerConfigs.find((p) => p.id === 'custom');
+      expect(customConfig?.options?.apiKey).toBeUndefined();
+      expect(warn.mock.calls.some((call) => String(call[0]).includes('none is stored'))).toBe(true);
+    });
+
+    it('does not warn for a keyless endpoint', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      await buildProviderConfigs({
+        getApiKey: () => undefined,
+        providerSettings: {
+          connectedProviders: {
+            custom: {
+              ...customProvider,
+              credentials: { ...customProvider.credentials, hasApiKey: false },
+            },
+          },
+        } as never,
+      });
+
+      expect(warn.mock.calls.some((call) => String(call[0]).includes('none is stored'))).toBe(
+        false,
+      );
+    });
+
+    it('passes the stored key through to the provider config', async () => {
+      const result = await buildProviderConfigs({
+        getApiKey: (p) => (p === 'custom' ? 'sk-custom-key' : undefined),
+        providerSettings: { connectedProviders: { custom: customProvider } } as never,
+      });
+
+      const customConfig = result.providerConfigs.find((p) => p.id === 'custom');
+      expect(customConfig?.options?.apiKey).toBe('sk-custom-key');
+    });
+  });
 });

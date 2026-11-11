@@ -52,6 +52,16 @@ export function buildCustomConfig(ctx: ProviderBuildContext): ProviderBuildResul
   const creds = customProvider.credentials;
   const baseURL = creds.baseUrl.replace(/\/+$/, '');
   const modelId = customProvider.selectedModelId.replace(/^custom\//, '');
+  if (!customApiKey && creds.hasApiKey) {
+    // The stored credentials say a key was entered, but secure storage has
+    // none. Without this warning the endpoint is called unauthenticated and
+    // the provider answers 401 — an error that says nothing about the real
+    // cause (the key is gone; the user must reconnect the provider).
+    log.warn(
+      `[OpenCode Config Builder] Custom endpoint is marked as having an API key but none is stored; ` +
+        `requests will be unauthenticated. Reconnect Custom Endpoint in Settings → Providers.`,
+    );
+  }
   log.info(`[OpenCode Config Builder] Custom endpoint configured: ${modelId} baseURL: ${baseURL}`);
   return {
     configs: [
