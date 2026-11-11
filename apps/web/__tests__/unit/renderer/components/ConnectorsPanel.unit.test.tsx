@@ -50,6 +50,7 @@ const mockAccomplish = {
 
 vi.mock('@/lib/accomplish', () => ({
   getAccomplish: () => mockAccomplish,
+  useAccomplish: () => mockAccomplish,
 }));
 
 vi.mock('react-i18next', () => ({

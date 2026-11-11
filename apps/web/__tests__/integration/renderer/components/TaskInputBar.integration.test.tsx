@@ -11,6 +11,7 @@ import { MemoryRouter } from 'react-router';
 import { PROMPT_DEFAULT_MAX_LENGTH } from '@accomplish_ai/agent-core/common';
 import { TaskInputBar } from '@/components/landing/TaskInputBar';
 import { PlusMenu } from '@/components/landing/PlusMenu';
+import { accomplishBaseStubs } from '../../../helpers/accomplish-stub';
 
 // Helper to render with Router context (required for PlusMenu -> CreateSkillModal -> useNavigate)
 const renderWithRouter = (ui: React.ReactElement) => {
@@ -19,6 +20,7 @@ const renderWithRouter = (ui: React.ReactElement) => {
 
 // Mock accomplish API
 const mockAccomplish = {
+  ...accomplishBaseStubs(),
   logEvent: vi.fn().mockResolvedValue(undefined),
   getSelectedModel: vi.fn().mockResolvedValue({ provider: 'anthropic', id: 'claude-3-opus' }),
   getOllamaConfig: vi.fn().mockResolvedValue(null),
@@ -50,6 +52,7 @@ const mockAccomplish = {
 // Mock the accomplish module
 vi.mock('@/lib/accomplish', () => ({
   getAccomplish: () => mockAccomplish,
+  useAccomplish: () => mockAccomplish,
 }));
 
 // Mock Radix Tooltip to render content directly (portals don't work in jsdom)

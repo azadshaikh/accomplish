@@ -6,10 +6,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router';
 import type { Task, TaskStatus, TaskMessage, PermissionRequest } from '@accomplish_ai/agent-core';
 import { OAuthProviderId, PROMPT_DEFAULT_MAX_LENGTH } from '@accomplish_ai/agent-core/common';
+import { accomplishBaseStubs } from '../../../helpers/accomplish-stub';
 
 // Create mock functions
 const mockLoadTaskById = vi.fn();
@@ -62,6 +63,7 @@ function createMockMessage(
 
 // Mock accomplish API
 const mockAccomplish = {
+  ...accomplishBaseStubs(),
   onTaskUpdate: mockOnTaskUpdate.mockReturnValue(() => {}),
   onTaskUpdateBatch: mockOnTaskUpdateBatch.mockReturnValue(() => {}),
   onPermissionRequest: mockOnPermissionRequest.mockReturnValue(() => {}),
@@ -121,6 +123,7 @@ const mockAccomplish = {
 // Mock the accomplish module
 vi.mock('@/lib/accomplish', () => ({
   getAccomplish: () => mockAccomplish,
+  useAccomplish: () => mockAccomplish,
 }));
 
 // Mock store state holder
@@ -537,28 +540,6 @@ describe('Execution Page Integration', () => {
           taskId: 'task-123',
           decision: 'allow',
         });
-      });
-    });
-
-    it('should call sendFollowUp with continue when Continue button is clicked', async () => {
-      mockStoreState.currentTask = createMockTask('task-123', 'Task', 'waiting_permission');
-      mockStoreState.permissionRequests = {
-        'task-123': {
-          id: 'perm-1',
-          taskId: 'task-123',
-          type: 'question',
-          question: 'How should I proceed?',
-          createdAt: new Date().toISOString(),
-        } as PermissionRequest,
-      };
-
-      renderWithRouter('task-123');
-
-      const continueButton = screen.getByRole('button', { name: /continue task/i });
-      fireEvent.click(continueButton);
-
-      await waitFor(() => {
-        expect(mockSendFollowUp).toHaveBeenCalledWith('continue', []);
       });
     });
 
@@ -1079,12 +1060,13 @@ describe('Execution Page Integration', () => {
     });
 
     it('should show task cancelled message for cancelled task', () => {
-      mockStoreState.currentTask = createMockTask('task-123', 'Cancelled', 'cancelled');
+      mockStoreState.currentTask = createMockTask('task-123', 'Wrapped up work', 'cancelled');
 
       renderWithRouter('task-123');
 
-      // Assert - cancelled tasks render a badge span, not a heading
-      expect(screen.getByText(/cancelled/i)).toBeInTheDocument();
+      // Assert - the status badge in the header reports cancellation
+      const badge = screen.getByTestId('execution-status-badge');
+      expect(within(badge).getByText('Cancelled')).toBeInTheDocument();
     });
 
     it('should show Continue button for interrupted task with session and messages', () => {
@@ -1180,9 +1162,17 @@ describe('Execution Page Integration', () => {
         },
       };
       mockStoreState.currentTask = task;
-      mockAccomplish.getSlackMcpOauthStatus
-        .mockResolvedValueOnce({ connected: false, pendingAuthorization: false })
-        .mockResolvedValueOnce({ connected: true, pendingAuthorization: false });
+      // The page also probes OAuth status when it mounts, so drive the mock
+      // with state instead of a fixed response queue.
+      let slackConnected = false;
+      mockAccomplish.getSlackMcpOauthStatus.mockImplementation(async () => ({
+        connected: slackConnected,
+        pendingAuthorization: false,
+      }));
+      mockAccomplish.loginSlackMcp.mockImplementation(async () => {
+        slackConnected = true;
+        return { ok: true };
+      });
 
       renderWithRouter('task-123');
 

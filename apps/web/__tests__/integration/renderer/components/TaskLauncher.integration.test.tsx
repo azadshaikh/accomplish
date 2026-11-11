@@ -9,6 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import type { Task, TaskStatus } from '@accomplish_ai/agent-core';
+import { accomplishBaseStubs } from '../../../helpers/accomplish-stub';
 
 // Create mock functions outside of mock factory
 const mockStartTask = vi.fn();
@@ -33,6 +34,7 @@ function createMockTask(
 
 // Mock accomplish API
 const mockAccomplish = {
+  ...accomplishBaseStubs(),
   hasAnyApiKey: mockHasAnyApiKey,
   getSelectedModel: vi.fn().mockResolvedValue({ provider: 'anthropic', id: 'claude-3-opus' }),
   getOllamaConfig: vi.fn().mockResolvedValue(null),
@@ -62,6 +64,7 @@ const mockAccomplish = {
 // Mock the accomplish module
 vi.mock('@/lib/accomplish', () => ({
   getAccomplish: () => mockAccomplish,
+  useAccomplish: () => mockAccomplish,
 }));
 
 // Create a store state holder for testing

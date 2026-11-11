@@ -8,6 +8,7 @@ import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import settingsEn from '../../../../locales/en/settings.json';
+import { accomplishBaseStubs, withUnknownBridgeStubs } from '../../../helpers/accomplish-stub';
 
 function translateSettingsKey(key: string, options?: Record<string, unknown>): string {
   const value = key.split('.').reduce<unknown>((current, segment) => {
@@ -27,6 +28,7 @@ function translateSettingsKey(key: string, options?: Record<string, unknown>): s
 }
 
 const mockAccomplish = {
+  ...accomplishBaseStubs(),
   getOllamaConfig: vi.fn().mockResolvedValue(null),
   isE2EMode: vi.fn().mockResolvedValue(false),
   getProviderSettings: vi.fn().mockResolvedValue({
@@ -76,9 +78,12 @@ const mockAccomplish = {
   onThemeChange: undefined,
 };
 
+const accomplishApi = withUnknownBridgeStubs(mockAccomplish);
+
 // Mock the accomplish module
 vi.mock('@/lib/accomplish', () => ({
-  getAccomplish: () => mockAccomplish,
+  getAccomplish: () => accomplishApi,
+  useAccomplish: () => accomplishApi,
 }));
 
 vi.mock('react-i18next', () => ({
@@ -273,9 +278,9 @@ describe('SettingsDialog Integration', () => {
       // Wait for dialog to load with anthropic as active
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
-        // Verify anthropic card has green background (is active)
+        // Verify anthropic card has the active-provider background
         const anthropicCard = screen.getByTestId('provider-card-anthropic');
-        expect(anthropicCard.className).toContain('bg-[#e9f7e7]');
+        expect(anthropicCard.className).toContain('bg-provider-bg-active');
       });
 
       // Verify the initial state: anthropic is active
@@ -288,7 +293,7 @@ describe('SettingsDialog Integration', () => {
     it('should render the Slack authentication card', async () => {
       render(<SettingsDialog {...defaultProps} />);
 
-      fireEvent.click(screen.getByRole('button', { name: 'Connectors' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Integrations' }));
 
       await waitFor(() => {
         expect(screen.getByTestId('slack-auth-card')).toBeInTheDocument();
@@ -305,7 +310,7 @@ describe('SettingsDialog Integration', () => {
 
       render(<SettingsDialog {...defaultProps} />);
 
-      fireEvent.click(screen.getByRole('button', { name: 'Connectors' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Integrations' }));
 
       await waitFor(() => {
         expect(screen.getByTestId('slack-auth-button')).toBeInTheDocument();

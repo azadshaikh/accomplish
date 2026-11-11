@@ -94,6 +94,7 @@ const mockAccomplish = {
 // Mock the accomplish module
 vi.mock('@/lib/accomplish', () => ({
   getAccomplish: () => mockAccomplish,
+  useAccomplish: () => mockAccomplish,
 }));
 
 // Mock window.accomplish for global subscriptions
@@ -114,6 +115,9 @@ vi.stubGlobal('window', {
     onTaskUpdate: mockOnTaskUpdate,
     onTodoUpdate: vi.fn(),
     onTaskSummary: vi.fn(),
+    onAuthError: vi.fn(),
+    onDaemonReconnected: vi.fn(),
+    onWorkspaceChanged: vi.fn(),
   },
 });
 

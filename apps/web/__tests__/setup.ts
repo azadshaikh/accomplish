@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { vi } from 'vitest';
+import { accomplishBaseStubs } from './helpers/accomplish-stub';
 
 // Prevent undici from crashing on Node 20 (undici 8 requires Node 22 APIs)
 vi.mock('undici', () => ({
@@ -75,16 +76,17 @@ const g = global as unknown as { window: { accomplish?: unknown } };
 if (!g.window) {
   g.window = {};
 }
+
+// Event subscriptions are registered at module load by the Zustand stores, so
+// every `on*` channel they touch must exist here. Tests override the members
+// they care about; everything else stays a no-op returning an unsubscribe fn.
 g.window.accomplish = {
   ...(g.window.accomplish ? (g.window.accomplish as object) : {}),
+  ...accomplishBaseStubs(),
   pickFolder: vi.fn().mockResolvedValue(null),
   pickFiles: vi.fn().mockResolvedValue([]),
   getFilePath: vi.fn((file: File) => file.name),
   processDroppedFiles: vi.fn().mockResolvedValue([]),
-  onTaskProgress: vi.fn().mockReturnValue(() => {}),
-  onTaskUpdate: vi.fn().mockReturnValue(() => {}),
-  onTaskSummary: vi.fn().mockReturnValue(() => {}),
-  onTodoUpdate: vi.fn().mockReturnValue(() => {}),
 };
 
 export {};

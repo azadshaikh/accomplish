@@ -9,6 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import type { Task, TaskStatus } from '@accomplish_ai/agent-core';
+import { accomplishBaseStubs } from '../../../helpers/accomplish-stub';
 
 // Create mock functions
 const mockStartTask = vi.fn();
@@ -37,6 +38,7 @@ function createMockTask(
 
 // Mock accomplish API
 const mockAccomplish = {
+  ...accomplishBaseStubs(),
   hasAnyApiKey: mockHasAnyApiKey,
   getSelectedModel: vi.fn().mockResolvedValue({ provider: 'anthropic', id: 'claude-3-opus' }),
   getOllamaConfig: vi.fn().mockResolvedValue(null),
@@ -70,6 +72,7 @@ const mockAccomplish = {
 // Mock the accomplish module
 vi.mock('@/lib/accomplish', () => ({
   getAccomplish: () => mockAccomplish,
+  useAccomplish: () => mockAccomplish,
 }));
 
 // Mock store state holder
@@ -86,7 +89,8 @@ let mockStoreState = {
 
 // Mock the task store
 vi.mock('@/stores/taskStore', () => ({
-  useTaskStore: () => mockStoreState,
+  useTaskStore: (selector?: (state: typeof mockStoreState) => unknown) =>
+    selector ? selector(mockStoreState) : mockStoreState,
 }));
 
 // Mock framer-motion for simpler testing
@@ -435,7 +439,20 @@ describe('Home Page Integration', () => {
         expect(screen.getByTestId('settings-dialog')).toBeInTheDocument();
       });
 
-      // Simulate saving API key (which triggers onApiKeySaved callback)
+      // Simulate saving API key (which triggers onApiKeySaved callback);
+      // the saved key makes the provider ready, so the queued task resumes.
+      mockAccomplish.getProviderSettings.mockResolvedValue({
+        activeProviderId: 'anthropic',
+        connectedProviders: {
+          anthropic: {
+            providerId: 'anthropic',
+            connectionStatus: 'connected',
+            selectedModelId: 'claude-3-5-sonnet-20241022',
+            credentials: { type: 'api-key', apiKey: 'test-key' },
+          },
+        },
+        debugMode: false,
+      });
       const saveButton = screen.getByRole('button', { name: /save api key/i });
       fireEvent.click(saveButton);
 
@@ -475,7 +492,7 @@ describe('Home Page Integration', () => {
       );
 
       // Assert
-      const submitButton = screen.getByTitle('Stop');
+      const submitButton = screen.getByRole('button', { name: /stop/i });
       expect(submitButton).not.toBeDisabled();
     });
 
@@ -490,7 +507,7 @@ describe('Home Page Integration', () => {
       );
 
       // The textarea is disabled, so we can't really type, but test submit
-      const submitButton = screen.getByTitle('Stop');
+      const submitButton = screen.getByRole('button', { name: /stop/i });
       fireEvent.click(submitButton);
 
       // Assert
