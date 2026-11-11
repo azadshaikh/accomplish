@@ -68,21 +68,21 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aws-sdk/client-bedrock": "^3.971.0",
-    "@aws-sdk/credential-providers": "^3.971.0",
-    "@azure/identity": "^4.13.0",
+    "@aws-sdk/client-bedrock": "^3.1166.0",
+    "@aws-sdk/credential-providers": "^3.1166.0",
+    "@azure/identity": "^4.14.1",
     "@opencode-ai/sdk": "1.14.18",
     "better-sqlite3": "catalog:",
     "gray-matter": "^4.0.3",
     "proxy-from-env": "^2.1.0",
-    "undici": "^8.0.3",
+    "undici": "^8.12.4",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@types/better-sqlite3": "catalog:",
     "@types/node": "catalog:",
     "@types/proxy-from-env": "^1.0.4",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.0"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.12"
   }
 }
