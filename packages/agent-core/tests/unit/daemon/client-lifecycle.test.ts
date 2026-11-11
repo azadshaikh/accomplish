@@ -5,13 +5,15 @@ import { tmpdir } from 'node:os';
 import { DaemonRpcServer } from '../../../src/daemon/rpc-server.js';
 import { DaemonClient } from '../../../src/daemon/client.js';
 import { createSocketTransport } from '../../../src/daemon/socket-transport.js';
+import { getSocketPath } from '../../../src/daemon/socket-path.js';
 
 let tempDir: string;
 let server: DaemonRpcServer | null = null;
 
 function createTempSocketPath(): string {
   tempDir = mkdtempSync(join(tmpdir(), 'daemon-lifecycle-test-'));
-  return join(tempDir, 'test.sock');
+  // Named pipe on Windows, Unix socket elsewhere.
+  return getSocketPath(tempDir);
 }
 
 afterEach(async () => {

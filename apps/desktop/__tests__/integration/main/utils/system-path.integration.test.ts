@@ -101,7 +101,7 @@ describe('System PATH Utilities', () => {
       });
     });
 
-    describe('macOS Platform', () => {
+    describe.skipIf(process.platform !== 'darwin')('macOS Platform', () => {
       beforeEach(() => {
         Object.defineProperty(process, 'platform', { value: 'darwin' });
       });
@@ -337,8 +337,8 @@ describe('System PATH Utilities', () => {
   describe('findCommandInPath()', () => {
     it('should find executable command in PATH', () => {
       // Arrange
-      const searchPath = '/usr/bin:/usr/local/bin';
-      const expectedPath = '/usr/local/bin/node';
+      const searchPath = ['/usr/bin', '/usr/local/bin'].join(_path.delimiter);
+      const expectedPath = _path.join('/usr/local/bin', 'node');
 
       mockFs.existsSync.mockImplementation((p: string) => {
         return p === expectedPath;
@@ -355,7 +355,7 @@ describe('System PATH Utilities', () => {
 
     it('should return null when command not found', () => {
       // Arrange
-      const searchPath = '/usr/bin:/usr/local/bin';
+      const searchPath = ['/usr/bin', '/usr/local/bin'].join(_path.delimiter);
       mockFs.existsSync.mockReturnValue(false);
 
       // Act
@@ -378,7 +378,7 @@ describe('System PATH Utilities', () => {
       expect(result).toBeNull();
     });
 
-    it('should skip non-executable files', () => {
+    it.skipIf(process.platform === 'win32')('should skip non-executable files', () => {
       // Arrange
       const searchPath = '/usr/bin';
       mockFs.existsSync.mockReturnValue(true);
@@ -396,9 +396,9 @@ describe('System PATH Utilities', () => {
 
     it('should search directories in order', () => {
       // Arrange
-      const searchPath = '/first/bin:/second/bin';
-      const firstPath = '/first/bin/node';
-      const secondPath = '/second/bin/node';
+      const searchPath = ['/first/bin', '/second/bin'].join(_path.delimiter);
+      const firstPath = _path.join('/first/bin', 'node');
+      const secondPath = _path.join('/second/bin', 'node');
 
       mockFs.existsSync.mockImplementation((p: string) => {
         return p === firstPath || p === secondPath;
@@ -415,8 +415,8 @@ describe('System PATH Utilities', () => {
 
     it('should handle empty path segments', () => {
       // Arrange
-      const searchPath = '/usr/bin::/usr/local/bin';
-      const expectedPath = '/usr/local/bin/node';
+      const searchPath = ['/usr/bin', '', '/usr/local/bin'].join(_path.delimiter);
+      const expectedPath = _path.join('/usr/local/bin', 'node');
 
       mockFs.existsSync.mockImplementation((p: string) => {
         return p === expectedPath;
@@ -433,11 +433,11 @@ describe('System PATH Utilities', () => {
 
     it('should handle directory access errors gracefully', () => {
       // Arrange
-      const searchPath = '/nonexistent:/usr/local/bin';
-      const expectedPath = '/usr/local/bin/node';
+      const searchPath = ['/nonexistent', '/usr/local/bin'].join(_path.delimiter);
+      const expectedPath = _path.join('/usr/local/bin', 'node');
 
       mockFs.existsSync.mockImplementation((p: string) => {
-        if (p.startsWith('/nonexistent')) {
+        if (p.includes('nonexistent')) {
           throw new Error('Directory does not exist');
         }
         return p === expectedPath;
@@ -454,12 +454,12 @@ describe('System PATH Utilities', () => {
 
     it('should handle statSync errors gracefully', () => {
       // Arrange
-      const searchPath = '/usr/bin:/usr/local/bin';
-      const expectedPath = '/usr/local/bin/node';
+      const searchPath = ['/usr/bin', '/usr/local/bin'].join(_path.delimiter);
+      const expectedPath = _path.join('/usr/local/bin', 'node');
 
       mockFs.existsSync.mockReturnValue(true);
       mockFs.statSync.mockImplementation((p: string) => {
-        if (p === '/usr/bin/node') {
+        if (p === _path.join('/usr/bin', 'node')) {
           throw new Error('Stat error');
         }
         return { isFile: () => p === expectedPath };
@@ -474,7 +474,7 @@ describe('System PATH Utilities', () => {
     });
   });
 
-  describe('Path Priority Order', () => {
+  describe.skipIf(process.platform !== 'darwin')('Path Priority Order', () => {
     it('should prioritize version manager paths over system paths', async () => {
       // Arrange
       Object.defineProperty(process, 'platform', { value: 'darwin' });

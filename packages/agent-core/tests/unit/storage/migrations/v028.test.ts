@@ -191,8 +191,7 @@ describe('migration v028: google_accounts', () => {
     const row = db
       .prepare('SELECT * FROM google_accounts WHERE google_account_id = ?')
       .get('uid-1') as
-      | { email: string; display_name: string; label: string; status: string }
-      | undefined;
+      { email: string; display_name: string; label: string; status: string } | undefined;
 
     expect(row).toBeDefined();
     expect(row?.email).toBe('test@gmail.com');

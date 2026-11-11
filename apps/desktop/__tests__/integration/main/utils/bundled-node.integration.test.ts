@@ -60,7 +60,12 @@ describe('Bundled Node.js Utilities', () => {
   it('resolves development bundled node paths from local resources', async () => {
     Object.defineProperty(process, 'platform', { value: 'darwin' });
     Object.defineProperty(process, 'arch', { value: 'arm64' });
-    const devNodeRoot = path.join('/mock/appPath', 'resources', 'nodejs', 'darwin-arm64');
+    const devNodeRoot = path.join(
+      path.resolve('/mock/appPath'),
+      'resources',
+      'nodejs',
+      'darwin-arm64',
+    );
     const nodePath = path.join(devNodeRoot, 'bin', 'node');
     const npmPath = path.join(devNodeRoot, 'bin', 'npm');
     const npxPath = path.join(devNodeRoot, 'bin', 'npx');
@@ -114,7 +119,12 @@ describe('Bundled Node.js Utilities', () => {
   it('getNodePath/getNpmPath/getNpxPath return bundled executable paths when available', async () => {
     Object.defineProperty(process, 'platform', { value: 'darwin' });
     Object.defineProperty(process, 'arch', { value: 'x64' });
-    const devNodeRoot = path.join('/mock/appPath', 'resources', 'nodejs', 'darwin-x64');
+    const devNodeRoot = path.join(
+      path.resolve('/mock/appPath'),
+      'resources',
+      'nodejs',
+      'darwin-x64',
+    );
     const nodePath = path.join(devNodeRoot, 'bin', 'node');
     const npmPath = path.join(devNodeRoot, 'bin', 'npm');
     const npxPath = path.join(devNodeRoot, 'bin', 'npx');

@@ -22,13 +22,13 @@ describe('socket-path', () => {
 
   describe('getDaemonDir', () => {
     it('returns ~/.accomplish', () => {
-      expect(getDaemonDir()).toBe('/Users/testuser/.accomplish');
+      expect(getDaemonDir()).toBe(join('/Users/testuser', '.accomplish'));
     });
   });
 
   describe('getSocketPath', () => {
     it('falls back to default dir when no dataDir provided', () => {
-      expect(getSocketPath()).toBe('/Users/testuser/.accomplish/daemon.sock');
+      expect(getSocketPath()).toBe(join('/Users/testuser', '.accomplish', 'daemon.sock'));
     });
 
     it('scopes socket to provided dataDir on macOS/Linux', () => {
@@ -70,7 +70,7 @@ describe('socket-path', () => {
 
   describe('getPidFilePath', () => {
     it('falls back to default dir when no dataDir provided', () => {
-      expect(getPidFilePath()).toBe('/Users/testuser/.accomplish/daemon.pid');
+      expect(getPidFilePath()).toBe(join('/Users/testuser', '.accomplish', 'daemon.pid'));
     });
 
     it('scopes PID file to provided dataDir', () => {

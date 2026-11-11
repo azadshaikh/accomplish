@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
+import fsDefault from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
@@ -663,31 +664,34 @@ describe('importLegacyWorkspaceMeta', () => {
   });
 
   // --- 18i. Cleanup failure leaves status missing ---
-  it('18i. unlinkLegacyTriplet failure (simulated via read-only file) leaves status missing', () => {
+  it('18i. unlinkLegacyTriplet failure leaves status missing', () => {
     if (!Database || !importModule) return;
     const db = openMainDb();
-    // Create a zero-byte main file in a read-only directory to make unlink
-    // fail with EACCES. Doing so reliably on macOS requires chmod tricks
-    // that don't work for the test runner's own uid. Instead, fake the
-    // failure by marking the file itself read-only on a path whose parent
-    // directory has no write permission for the user.
-    const readonlyDir = path.join(testDir, 'ro-dir');
-    fs.mkdirSync(readonlyDir);
-    const legacyPath = path.join(readonlyDir, 'zero.db');
+    // Simulate an unlink failure directly. POSIX permission tricks are not
+    // portable: Windows ignores directory write bits for deletion and a
+    // read-only file can still be removed.
+    const legacyPath = path.join(testDir, 'zero.db');
     fs.writeFileSync(legacyPath, Buffer.alloc(0));
-    // Remove write perms from the directory (on the parent to prevent unlink).
-    fs.chmodSync(readonlyDir, 0o555);
+    const unlinkSpy = vi.spyOn(fsDefault, 'unlinkSync').mockImplementation(((
+      target: fs.PathLike,
+    ) => {
+      if (String(target) === legacyPath) {
+        const err = new Error('EBUSY: resource busy or locked, unlink') as NodeJS.ErrnoException;
+        err.code = 'EBUSY';
+        throw err;
+      }
+      return fs.unlinkSync(target);
+    }) as typeof fs.unlinkSync);
     try {
       importModule.importLegacyWorkspaceMeta(db, legacyPath, 29);
-      // unlinkLegacyTriplet should have failed with EACCES; the helper
+      // unlinkLegacyTriplet should have failed with EBUSY; the helper
       // must NOT write status='none' because a terminal status would
       // permanently bake in the stale-file state.
       expect(readStatus(db)).toBeUndefined();
       // File still exists (couldn't be unlinked).
       expect(fs.existsSync(legacyPath)).toBe(true);
     } finally {
-      // Restore write perms so afterEach() can clean up.
-      fs.chmodSync(readonlyDir, 0o755);
+      unlinkSpy.mockRestore();
     }
   });
 

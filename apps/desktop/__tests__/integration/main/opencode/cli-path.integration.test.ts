@@ -65,7 +65,7 @@ describe('OpenCode CLI Path Module', () => {
 
   describe('getOpenCodeCliPath()', () => {
     it('resolves local CLI from appPath in development mode', async () => {
-      const appPath = '/mock/app/path';
+      const appPath = path.resolve('/mock/app/path');
       const localCliPath =
         process.platform === 'win32'
           ? path.join(appPath, 'node_modules', 'opencode-windows-x64', 'bin', 'opencode.exe')
@@ -81,8 +81,8 @@ describe('OpenCode CLI Path Module', () => {
     });
 
     it('resolves local CLI from APP_ROOT when appPath lookup fails', async () => {
-      const appPath = '/mock/app/path';
-      const appRoot = '/mock/app/root';
+      const appPath = path.resolve('/mock/app/path');
+      const appRoot = path.resolve('/mock/app/root');
       process.env.APP_ROOT = appRoot;
       const localCliPath =
         process.platform === 'win32'
@@ -139,7 +139,7 @@ describe('OpenCode CLI Path Module', () => {
 
   describe('isOpenCodeBundled()', () => {
     it('returns true when local workspace CLI is available', async () => {
-      const appPath = '/mock/app/path';
+      const appPath = path.resolve('/mock/app/path');
       const localCliPath =
         process.platform === 'win32'
           ? path.join(appPath, 'node_modules', 'opencode-windows-x64', 'bin', 'opencode.exe')

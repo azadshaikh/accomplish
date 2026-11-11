@@ -164,13 +164,11 @@ describe('integration: legacy-meta upgrade happy path', () => {
     // --- Step 3a: schema_meta keys ---
     const status = (
       db.prepare("SELECT value FROM schema_meta WHERE key = 'legacy_meta_import_status'").get() as
-        | { value: string }
-        | undefined
+        { value: string } | undefined
     )?.value;
     const storedPath = (
       db.prepare("SELECT value FROM schema_meta WHERE key = 'legacy_meta_import_path'").get() as
-        | { value: string }
-        | undefined
+        { value: string } | undefined
     )?.value;
     expect(status).toBe('copied');
     expect(storedPath).toBe(legacyPath);
@@ -182,8 +180,7 @@ describe('integration: legacy-meta upgrade happy path', () => {
     ).n;
     const activePtr = (
       db.prepare("SELECT value FROM workspace_meta WHERE key = 'active_workspace_id'").get() as
-        | { value: string }
-        | undefined
+        { value: string } | undefined
     )?.value;
     expect(wsCount).toBe(2);
     expect(notesCount).toBe(3);
