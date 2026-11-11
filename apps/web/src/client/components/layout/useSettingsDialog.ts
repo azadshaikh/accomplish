@@ -54,7 +54,6 @@ export function useSettingsDialog({
 
   useEffect(() => {
     if (!open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset on close
       setSelectedProvider(null);
       setGridExpanded(false);
       setCloseWarning(false);
@@ -72,7 +71,6 @@ export function useSettingsDialog({
     if (!providerToSelect) {
       return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync with open/initialProvider
     setSelectedProvider(providerToSelect);
     if (!FIRST_FOUR_PROVIDERS.includes(providerToSelect as (typeof FIRST_FOUR_PROVIDERS)[number])) {
       setGridExpanded(true);

@@ -54,7 +54,6 @@ export const MessageBubble = memo(
 
     useEffect(() => {
       if (!shouldStream) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync from prop
         setStreamComplete(true);
       }
     }, [shouldStream]);

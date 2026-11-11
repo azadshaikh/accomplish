@@ -48,6 +48,16 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // eslint-plugin-react-hooks 7.1 promoted the React Compiler rules into
+      // `recommended`. The renderer predates the compiler and relies on several
+      // patterns those rules reject (sync setState inside effects, latest-ref
+      // assignments during render, UI-only impurity such as Math.random()).
+      // They stay off until the compiler is adopted; dependency checks remain
+      // enforced by the shared `react-hooks/exhaustive-deps` setting.
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/purity': 'off',
+      'react-hooks/refs': 'off',
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'react/jsx-key': 'error',
