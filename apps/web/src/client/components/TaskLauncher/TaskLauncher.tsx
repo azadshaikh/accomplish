@@ -32,14 +32,12 @@ export function TaskLauncher() {
 
   // Clamp selected index when results change
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync derived state from prop change
     setSelectedIndex((i) => Math.min(i, Math.max(0, totalItems - 1)));
   }, [totalItems]);
 
   // Reset state when launcher opens, use initial prompt if provided
   useEffect(() => {
     if (isLauncherOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset state on open
       setSearchQuery(launcherInitialPrompt || '');
       setSelectedIndex(0);
       setOpenedAt(Date.now());
@@ -141,7 +139,6 @@ export function TaskLauncher() {
               selectedIndex={selectedIndex}
               filteredTasks={filteredTasks}
               onSelect={handleSelect}
-              onClose={closeLauncher}
               onKeyDown={handleKeyDown}
             />
           </DialogPrimitive.Portal>

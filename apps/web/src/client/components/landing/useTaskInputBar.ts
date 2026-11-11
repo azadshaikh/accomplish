@@ -43,7 +43,9 @@ export function useTaskInputBar({
   const isInputDisabled = disabled || isLoading;
   const isOverLimit = value.length > PROMPT_DEFAULT_MAX_LENGTH;
   const canSubmit = (!!value.trim() || attachments.length > 0) && !disabled && !isOverLimit;
-  const isSubmitDisabled = !canSubmit || isInputDisabled;
+  // While a task is running the submit button doubles as a stop button, so it
+  // must stay clickable even though the input itself is disabled.
+  const isSubmitDisabled = isLoading ? disabled : !canSubmit;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const latestValueRef = useRef(value);
   const pendingAutoSubmitRef = useRef<string | null>(null);
