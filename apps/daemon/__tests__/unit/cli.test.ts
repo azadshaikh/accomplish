@@ -5,7 +5,9 @@ import { parseArgs } from '../../src/cli.js';
 describe('cli parseArgs', () => {
   it('parses --data-dir and resolves to absolute path', () => {
     const args = parseArgs(['--data-dir', '/some/path']);
-    expect(args.dataDir).toBe('/some/path');
+    // parseArgs resolves the value, so the expectation has to be the
+    // platform's rendering of that path (C:\some\path on Windows).
+    expect(args.dataDir).toBe(resolve('/some/path'));
   });
 
   it('resolves relative --data-dir to absolute', () => {
@@ -37,7 +39,7 @@ describe('cli parseArgs', () => {
 
   it('parses multiple flags', () => {
     const args = parseArgs(['--data-dir', '/data', '--socket-path', '/sock']);
-    expect(args.dataDir).toBe('/data');
+    expect(args.dataDir).toBe(resolve('/data'));
     expect(args.socketPath).toBe('/sock');
   });
 });
