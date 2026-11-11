@@ -33,6 +33,7 @@
 import { spawn, spawnSync, type ChildProcess } from 'child_process';
 import {
   resolveCliPath,
+  stripAnsi,
   type StorageAPI,
   type AccomplishRuntime,
   type CliResolverConfig,
@@ -235,7 +236,7 @@ function spawnOpenCodeServer(
     };
 
     const onStdout = (chunk: Buffer | string): void => {
-      const text = chunk.toString();
+      const text = stripAnsi(chunk.toString());
       output += text;
       stdoutBuffer += text;
       const lines = stdoutBuffer.split('\n');
@@ -263,7 +264,10 @@ function spawnOpenCodeServer(
     };
 
     const onStderr = (chunk: Buffer | string): void => {
-      const text = chunk.toString();
+      // opencode colorizes its own diagnostics ("Error: ..." arrives wrapped
+      // in SGR escapes). This text ends up verbatim in the task-failure
+      // banner, so strip it here rather than shipping escape codes to the UI.
+      const text = stripAnsi(chunk.toString());
       output += text;
       // Forward opencode's own stderr too — schema validation failures,
       // port conflicts, OAuth exchange errors all land here.
