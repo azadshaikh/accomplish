@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 echo "[pre-push] Running pre-push checks (skip with: git push --no-verify)"
 
-# Load nvm so we use the Node version from .nvmrc (Node 22 required for undici v8)
+# Load nvm so we use the Node version from .nvmrc (Node 22 required for undici v8).
+# Only the POSIX nvm shell function is safe to call here: nvm-windows puts an
+# nvm.exe on PATH that rejects POSIX flags and parses `use --silent` as a
+# version, which fails every push from a Windows checkout.
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-# shellcheck disable=SC1090
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" --no-use
-if command -v nvm &>/dev/null && [ -f ".nvmrc" ]; then
-  nvm use --silent 2>/dev/null || exit 1
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+  # shellcheck disable=SC1090
+  \. "$NVM_DIR/nvm.sh" --no-use
+  if command -v nvm &>/dev/null && [ -f ".nvmrc" ]; then
+    nvm use --silent 2>/dev/null || exit 1
+  fi
 fi
 
 # Compute changed files once, used by all steps below
