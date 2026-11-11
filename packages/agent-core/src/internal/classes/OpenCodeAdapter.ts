@@ -77,6 +77,7 @@ import { getOAuthProviderDisplayName, isOAuthProviderId } from '../../common/typ
 import { CONNECTOR_AUTH_REQUIRED_MARKER } from '../../common/constants.js';
 import { createConsoleLogger } from '../../utils/logging.js';
 import { ACCOMPLISH_AGENT_NAME } from '../../opencode/config-generator.js';
+import { formatSessionErrorMessage, type SessionErrorLike } from '../../opencode/session-error.js';
 // `toTaskMessage` and `ModelContext` will be wired when we move to emitting
 // pre-processed `TaskMessage` shapes on the event bus (Phase 1c / Phase 2 —
 // renderer upsert-by-ID lands there). Today we still emit `OpenCodeMessage`
@@ -915,9 +916,9 @@ export class OpenCodeAdapter extends EventEmitter<OpenCodeAdapterEvents> {
         return;
       }
       case 'session.error': {
-        const err = (event.properties as { error?: { message?: string; name?: string } }).error;
+        const err = (event.properties as { error?: SessionErrorLike }).error;
         if (err) {
-          const msg = err.message ?? 'Session error';
+          const msg = formatSessionErrorMessage(err, { providerId: this.currentProviderId });
           this.emit('error', new Error(msg));
           this.markComplete('error', msg);
         }

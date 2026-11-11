@@ -33,34 +33,76 @@ export class SecureStorage {
   private filePath: string;
   private derivedKey: Buffer | null = null;
   private data: SecureStorageSchema | null = null;
+  /** Signature (`mtime:size`) of the file as we last read or wrote it. */
+  private fileSignature: string | null = null;
 
   constructor(options: SecureStorageOptions) {
     this.appId = options.appId;
     this.filePath = path.join(options.storagePath, options.fileName || 'secure-storage.json');
   }
 
+  private fileSignatureOnDisk(): string | null {
+    try {
+      const stat = fs.statSync(this.filePath);
+      return `${stat.mtimeMs}:${stat.size}`;
+    } catch {
+      return null;
+    }
+  }
+
+  private readFromDisk(): SecureStorageSchema {
+    try {
+      if (fs.existsSync(this.filePath)) {
+        const content = fs.readFileSync(this.filePath, 'utf-8');
+        return JSON.parse(content) as SecureStorageSchema;
+      }
+    } catch {
+      // Corrupt or unreadable file: fall back to an empty store rather than
+      // throwing, matching the previous behaviour.
+    }
+    return { values: {} };
+  }
+
   private loadData(): SecureStorageSchema {
     if (this.data) {
       return this.data;
     }
-
-    try {
-      if (fs.existsSync(this.filePath)) {
-        const content = fs.readFileSync(this.filePath, 'utf-8');
-        this.data = JSON.parse(content) as SecureStorageSchema;
-      } else {
-        this.data = { values: {} };
-      }
-    } catch {
-      this.data = { values: {} };
-    }
-
+    this.data = this.readFromDisk();
+    this.fileSignature = this.fileSignatureOnDisk();
     return this.data;
+  }
+
+  /**
+   * Re-read the file when another writer touched it since we last loaded or
+   * saved it.
+   *
+   * `secure-storage.json` is a single JSON document and every writer persists
+   * its whole in-memory snapshot. Two daemons can share one profile (a stale
+   * one that was never replaced, or a packaged and an unpackaged launcher
+   * pointed at the same data dir), and without this check the last writer
+   * silently drops entries the other one added — which is how a stored API key
+   * can vanish while the provider still shows as connected.
+   */
+  private refreshIfChangedOnDisk(): void {
+    if (!this.data) {
+      return;
+    }
+    if (this.fileSignatureOnDisk() === this.fileSignature) {
+      return;
+    }
+    const previousSalt = this.data.salt;
+    this.data = this.readFromDisk();
+    this.fileSignature = this.fileSignatureOnDisk();
+    if (this.data.salt !== previousSalt) {
+      // A different salt means a different derived key; drop the cached one.
+      this.derivedKey = null;
+    }
   }
 
   private saveData(): void {
     if (!this.data) return;
     atomicWriteFile(this.filePath, JSON.stringify(this.data, null, 2));
+    this.fileSignature = this.fileSignatureOnDisk();
   }
 
   private getSalt(): Buffer {
@@ -94,6 +136,7 @@ export class SecureStorage {
   }
 
   storeApiKey(provider: string, apiKey: string): void {
+    this.refreshIfChangedOnDisk();
     const data = this.loadData();
     const encrypted = this.encryptValue(apiKey);
     data.values[`apiKey:${provider}`] = encrypted;
@@ -101,6 +144,7 @@ export class SecureStorage {
   }
 
   getApiKey(provider: string): string | null {
+    this.refreshIfChangedOnDisk();
     const data = this.loadData();
     const encrypted = data.values[`apiKey:${provider}`];
     if (!encrypted) {
@@ -110,6 +154,7 @@ export class SecureStorage {
   }
 
   deleteApiKey(provider: string): boolean {
+    this.refreshIfChangedOnDisk();
     const data = this.loadData();
     const key = `apiKey:${provider}`;
     if (!(key in data.values)) {
@@ -150,6 +195,7 @@ export class SecureStorage {
   }
 
   listStoredCredentials(): Array<{ account: string; password: string }> {
+    this.refreshIfChangedOnDisk();
     const data = this.loadData();
     const credentials: Array<{ account: string; password: string }> = [];
     for (const key of Object.keys(data.values)) {
@@ -162,18 +208,21 @@ export class SecureStorage {
   }
 
   clearSecureStorage(): void {
+    this.refreshIfChangedOnDisk();
     this.data = { values: {} };
     this.derivedKey = null;
     this.saveData();
   }
 
   set(key: string, value: string): void {
+    this.refreshIfChangedOnDisk();
     const data = this.loadData();
     data.values[key] = this.encryptValue(value);
     this.saveData();
   }
 
   get(key: string): string | null {
+    this.refreshIfChangedOnDisk();
     const data = this.loadData();
     const encrypted = data.values[key];
     if (!encrypted) {
@@ -183,6 +232,7 @@ export class SecureStorage {
   }
 
   delete(key: string): boolean {
+    this.refreshIfChangedOnDisk();
     const data = this.loadData();
     if (!(key in data.values)) {
       return false;
@@ -193,6 +243,7 @@ export class SecureStorage {
   }
 
   has(key: string): boolean {
+    this.refreshIfChangedOnDisk();
     const data = this.loadData();
     return key in data.values;
   }
